@@ -23,13 +23,21 @@ import {
   Tooltip,
   Pagination,
   Dialog,
-  MessageBox
+  MessageBox,
+  Tag,
+  Tree,
+  Select,
+  Option
 } from 'element-ui'
 import lang from 'element-ui/lib/locale/lang/zh-TW'
 import locale from 'element-ui/lib/locale'
 
 locale.use(lang)
 
+Vue.use(Option)
+Vue.use(Select)
+Vue.use(Tree)
+Vue.use(Tag)
 Vue.use(Dialog)
 Vue.use(Pagination)
 Vue.use(Tooltip)

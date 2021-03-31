@@ -62,12 +62,14 @@
               :enterable="false"
               placement="top"
               effect="dark"
+              
             >
               <!-- content to trigger tooltip here -->
               <el-button
                 type="warning"
                 size="mini"
                 icon="el-icon-setting"
+                @click="setRole(row)"
               ></el-button>
             </el-tooltip>
           </template>
@@ -143,6 +145,32 @@
         <el-button type="primary" @click="editUserInfo">確定</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog
+      title="分配角色"
+      :visible.sync="setRoleDialogVisble"
+      width="50%"
+      @click="editDialogClosed"
+      >
+      <div>
+        <p>目前使用者: {{userInfo.username}}</p>
+        <p>目前角色: {{userInfo.role_name}}</p>
+        <p>
+          <el-select v-model="selectedRoleId" placeholder="">
+            <el-option v-for="item in rolesList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </p>
+      </div>
+      <span slot="footer">
+        <el-button @click=" setRoleDialogVisble = false">取消</el-button>
+        <el-button type="primary" @click="saveRoleInfo">確定</el-button>
+      </span>
+    </el-dialog>
+    
   </div>
 </template>
 
@@ -166,11 +194,14 @@ export default {
       callback(new Error('請輸入合法手機'))
     }
     return {
+      selectedRoleId: '',
+      rolesList: [],
       queryInfo: {
         query: '',
         pagenum: 1,
         pagesize: 2
       },
+      setRoleDialogVisble: false,
       dialogVisible: false,
       editDialogVisble: false,
       userlist: [],
@@ -229,13 +260,36 @@ export default {
             trigger: 'blur'
           }
         ]
-      }
+      },
+      userInfo: {}
     }
   },
   created() {
     this.getUserList()
   },
   methods: {
+    editDialogClosed() {
+      this.selectedRoleId = ''
+      this.userInfo = {}
+    },
+    async saveRoleInfo() {
+      if(!this.selectedRoleId) {
+        return this.$message.error('未選角色')
+      }
+      const {data:res} = await this.$http.put(`users/${this.userInfo.id}/role`,{rid:this.selectedRoleId})
+      if(res.meta.status !== 200) return this.$message.error('錯誤')
+      this.$message.success('成功')
+      this.getUserList()
+      this.setRoleDialogVisble = false
+    },
+    async setRole(userInfo) {
+      this.userInfo = userInfo
+      const {data:res} = await this.$http.get('roles')
+      if (res.meta.status !== 200) return this.$message.error('角色獲取失敗')
+      this.rolesList = res.data
+
+      this.setRoleDialogVisble = true
+    },
     editUserInfo() {
       // edit user info and submit
       this.$refs.editFormRef.validate(async valid => {
